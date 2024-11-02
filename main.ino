@@ -10,9 +10,9 @@ int Mode = 0;
 #define ERROR 3
 
 ////////////////////////// Pins Defined for Servo Motors/////////////////////////////
-const int pins1 = 3; //change as per need
-const int pins2 = 5; //change as per need
-const int pins3 = 6; //change as per need
+const int pins1 = 3; //change as per need for angle of s1
+const int pins2 = 5; //change as per need for angle of s2
+const int pins3 = 6; //change as per need for angle of s3
 
 Servo s1;
 Servo s2;
@@ -20,26 +20,35 @@ Servo s3;
 
 ////////////////////////// Functions Defined /////////////////////////////////
 long quadsolve(); //solves quadratic equation of form ax^2 + bx + c = 0
+long arctan(); //finds inverse of tan in degrees
+long arccos(); //finds inverse of cos in degrees
 
-long findx(); //finds the value of X coordinate
-long findy(); //finds the value of X coordinate
-long findz(); //finds the value of X coordinate
+void findangles1(); //finds the value of angle1
+void findangles2(); //finds the value of angle2
+void findangles3(); //finds the value of angle3
+
+int testcalculation(); //checks the calculation and returns accordingly
 
 int everythingOK(); //checks if everything is OK or not
 
 /////////////////// Variables Defined ////////////////////////
-double defangles1 = 0; //Define initial state angle at start
-double defangles2 = 90; //Define initial state angle at start
-double defangles3 = 90; //Define initial state angle at start
+double defangles1 = 0; //Define initial state of angle at start
+double defangles2 = 90; //Define initial state of angle at start
+double defangles3 = 90; //Define initial state of angle at start
 
 long angles1;
 long angles2;
 long angles3;
 
+long cs2; //stores the value of cos(angles2)
+long cs3; //stores the value of cos(angles3)
+
 double l1,l2,l3; //Length of the rods
 
 double x,y,z; //Coordinates of the position to reach
+double calcx,calcy,calcz; //Calculated Coordinates after the calculations are done
 
+int nerror; //counts the number of errors occured
 
 /////////////////////////////////////////////////////////////
 void setup(){
@@ -50,6 +59,10 @@ void setup(){
   s3.attach(pins3);
 
   Serial.println("Power On");
+
+  s1.write(defangles1);
+  s2.write(defangles2);
+  s3.write(defangles3);
 }
 
 void loop(){
@@ -67,7 +80,12 @@ void loop(){
     Serial.print("Enter Value of Z coordinate ");
     z = Serial.read();
 
-    if (everythingOK == 0) Mode = EXECUTE;
+    Serial.println("---------------------------------------");
+
+    Serial.println("Running Tests");
+    
+
+    if (everythingOK() == 0) Mode = EXECUTE;
     else Mode = ERROR;
   }
     
@@ -86,6 +104,7 @@ void loop(){
     
   else if (Mode == ERROR){
     Serial.println("An Unknown Error Occured"); //Can update this field to find out the type of error
+    Serial.println("Exiting With %d Errors",nerror);
     Mode = ON;
   }
 }
@@ -96,4 +115,59 @@ long quadsolve(long a,long b, long c){
   long sol1 = (-b + sqrt(dis))/(2*a);
   long sol2 = (-b - sqrt(dis))/(2*a);
   return sol1,sol2;
+}
+
+long arctan(long temp){
+  long arctanRadians = atan(temp); // Calculate tan inverse in radians
+  long arctanDegrees = arctanRadians * (180.0 / PI); // Convert radians to degrees
+  return arctanDegrees;
+}
+
+long arccos(long temp){
+  long arccosRadians = acos(temp); // Calculate cos inverse in radians
+  long arccosDegrees = arccosRadians * (180.0 / PI); // Convert radians to degrees
+  return arccosDegrees;
+}
+
+void findangles1(){
+  if (x>0 && z>0){
+    angles1 = arctan(x/z);
+  }
+  else if (x<0 && z>0){
+    angles1 = 180 + arctan(x/z);
+  }
+  else if (x<0 && z<0){
+    angles1 = 180 + arctan(x/z);
+  }
+  else if (x>0 && z<0){
+    angles1 = 360 + arctan(x/z);
+  }
+  else nerror+=1;
+}
+
+void findangles2(){
+  long a,b,c; //variables for the equation of cs2 (refer notes or proof for the same)
+  a = ((l1-y)*(l1-y)) + (x*x) + (z*z);
+  b = (2*y*l2) - (2*cs3*y*l3) - (2*l1*l2) + (2*cs3*l1*l3);
+  c = (y*y) + (l1*l1) - (2*y*l1) - (l3*l3) + (cs3*cs3*l3*l3);
+  
+  long sol1,sol2;
+  sol1,sol2 = quadsolve(a,b,c);
+  
+  if (sol1 <=0 && sol1>=-1) cs3 = sol1;
+  else if (sol2 <=0 && sol2>=-1) cs3 = sol2;
+  else nerror+=1;
+}
+
+void findangles3(){
+  cs3 = ((l2*l2) + (l3*l3) - ( ((l1-y)*(l1-y)) + (x*x) + (z*z) )/ (2*l2*l3)
+  angles3 = arccos(cs3); //derived from scratch
+}
+
+int testcalculation(){
+  
+}
+
+int everythingOK();{
+  
 }
