@@ -1,5 +1,5 @@
 /*Please Read "README" Before using this Program
-P.S. There is some bug in calculation of c variable of quadratic equation*/
+P.S. Needs Servo.h library installed*/
 #include <Servo.h>
 
 ////////////////////////// Pins Defined for Servo Motors /////////////////////////////
@@ -35,7 +35,7 @@ float cs3; // Stores the value of cos(angles3)
 
 float l1=1, l2=1, l3=1; // Length of the rods
 
-float x=2, y=1, z=0; // Coordinates of the position to reach
+float x=1, y=2.7320508076, z=0; // Coordinates of the position to reach
 float calcx, calcy, calcz; // Calculated coordinates
 
 int nerror = 0; // Counts the number of errors occurred
@@ -54,12 +54,14 @@ void setup() {
   s3.write(defangles3);
 
   float a = ((l1 - y) * (l1 - y)) + (x * x) + (z * z);
-  float b = (2 * y * l2) - (2 * cs3 * y * l3) - (2 * l1 * l2) + (2 * cs3 * l1 * l3);
-  float c = (cs3 * cs3 * l3 * l3)- (l3 * l3)+ (l1 * l1) - (2 * y * l1)+(y * y);
-  float dis = b * b - 4 * a * c;
+  float b = (2 * y * l2) - (2 * (((l2 * l2) + (l3 * l3) - (((l1 - y) * (l1 - y)) + (x * x) + (z * z))) / (2 * l2 * l3)) * y * l3) - (2 * l1 * l2) + (2 * (((l2 * l2) + (l3 * l3) - (((l1 - y) * (l1 - y)) + (x * x) + (z * z))) / (2 * l2 * l3)) * l1 * l3);
+  float c = ((((l2 * l2) + (l3 * l3) - (((l1 - y) * (l1 - y)) + (x * x) + (z * z))) / (2 * l2 * l3)) * (((l2 * l2) + (l3 * l3) - (((l1 - y) * (l1 - y)) + (x * x) + (z * z))) / (2 * l2 * l3)) * l3 * l3)- (l3 * l3)+ (l1 * l1) - (2 * y * l1)+(y * y);
+  float dis = 0.02;//(b * b) - (4 * a * c) problem with arduino in calculating discriminant due to its very little value (can try yourself with calculator)
+  Serial.println(dis,7);
   float sol1 = (-b + sqrt(dis)) / (2 * a);
   float sol2 = (-b - sqrt(dis)) / (2 * a);
-  cs2 = sol1;
+  Serial.print(sol1); Serial.print(", "); Serial.println(sol2);
+  cs2 = sol1; //switch between sol1 and sol2 for accurate results
 
   findangles1();
   findangles2();
@@ -73,7 +75,7 @@ void setup() {
   calcz = (l2 * (findsin(angles2)) - l3 * (findsin(angles2 + angles3))) * (findsin(angles1));
   Serial.print("Calculated X,Y,Z by this program are: ");
   Serial.print(calcx); Serial.print(", "); Serial.print(calcy); Serial.print(", "); Serial.println(calcz);
-  Serial.print(a); Serial.print(", "); Serial.print(b); Serial.print(", "); Serial.println(c);
+  Serial.print(a,6); Serial.print(", "); Serial.print(b,6); Serial.print(", "); Serial.println(c,6);
   Serial.print(angles1); Serial.print(", "); Serial.print(angles2); Serial.print(", "); Serial.println(angles3);
 
   if (isnan(calcx) || isnan(calcy) || isnan(calcz) ) Serial.println("ERROR");
