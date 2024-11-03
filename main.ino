@@ -56,11 +56,10 @@ void setup() {
   float a = ((l1 - y) * (l1 - y)) + (x * x) + (z * z);
   float b = (2 * y * l2) - (2 * (((l2 * l2) + (l3 * l3) - (((l1 - y) * (l1 - y)) + (x * x) + (z * z))) / (2 * l2 * l3)) * y * l3) - (2 * l1 * l2) + (2 * (((l2 * l2) + (l3 * l3) - (((l1 - y) * (l1 - y)) + (x * x) + (z * z))) / (2 * l2 * l3)) * l1 * l3);
   float c = ((((l2 * l2) + (l3 * l3) - (((l1 - y) * (l1 - y)) + (x * x) + (z * z))) / (2 * l2 * l3)) * (((l2 * l2) + (l3 * l3) - (((l1 - y) * (l1 - y)) + (x * x) + (z * z))) / (2 * l2 * l3)) * l3 * l3)- (l3 * l3)+ (l1 * l1) - (2 * y * l1)+(y * y);
-  float dis = 0.02;//(b * b) - (4 * a * c) problem with arduino in calculating discriminant due to its very little value (can try yourself with calculator)
-  Serial.println(dis,7);
+  float dis = 0.02;//(b * b) - (4 * a * c); //problem with arduino in calculating discriminant due to its very little value (can try yourself with calculator)
+  //I have calculated the discriminant outside of the program with the values of a,b and c given as output of this program
   float sol1 = (-b + sqrt(dis)) / (2 * a);
   float sol2 = (-b - sqrt(dis)) / (2 * a);
-  Serial.print(sol1); Serial.print(", "); Serial.println(sol2);
   cs2 = sol1; //switch between sol1 and sol2 for accurate results
 
   findangles1();
@@ -75,7 +74,11 @@ void setup() {
   calcz = (l2 * (findsin(angles2)) - l3 * (findsin(angles2 + angles3))) * (findsin(angles1));
   Serial.print("Calculated X,Y,Z by this program are: ");
   Serial.print(calcx); Serial.print(", "); Serial.print(calcy); Serial.print(", "); Serial.println(calcz);
+
+  /////////////////////////////////For Debugging//////////////////////////////
+  Serial.print("Calculated a,b,c by this program are: ");
   Serial.print(a,6); Serial.print(", "); Serial.print(b,6); Serial.print(", "); Serial.println(c,6);
+  Serial.print("Calculated angles by this program are: ");
   Serial.print(angles1); Serial.print(", "); Serial.print(angles2); Serial.print(", "); Serial.println(angles3);
 
   if (isnan(calcx) || isnan(calcy) || isnan(calcz) ) Serial.println("ERROR");
