@@ -22,6 +22,9 @@ Servo s3;
 long quadsolve(); //solves quadratic equation of form ax^2 + bx + c = 0
 long arctan(); //finds inverse of tan in degrees
 long arccos(); //finds inverse of cos in degrees
+long findsin(); //finds sin of an angle in degree
+long findcos(); //finds cos of an angle in degree
+double mod();
 
 void findangles1(); //finds the value of angle1
 void findangles2(); //finds the value of angle2
@@ -86,10 +89,19 @@ void loop(){
     
 
     if (everythingOK() == 0) Mode = EXECUTE;
-    else Mode = ERROR;
+    else {
+      Serial.println("An Error Occured\n If You Wish to Overwrite Type Y else press any key and enter");
+      char command = Serial.read();
+      if (command == "Y") Mode = EXECUTE;
+      else Mode = ERROR;
+    }
   }
     
   else if (Mode == EXECUTE){
+    findangles1();
+    findangles2();
+    findangles3();
+    Serial.println("Your X,Y,Z were %d, %d, %d\nCalculated X,Y,Z by this program is %d, %d, %d",x,y,z,calcx,calcy,calcz);
     Serial.println("Are You SURE You Want To EXECUTE (Y)");
     char response = Serial.read();
     if (response == "Y" || response == "y" || response == "YES" || response == "yes" || response == "Yes"){
@@ -129,6 +141,21 @@ long arccos(long temp){
   return arccosDegrees;
 }
 
+long findsin(long ang){
+  long anginrad = ang * PI / 180;
+  return sin(anginrad);
+}
+
+long findcos(long ang){
+  long anginrad = ang * PI / 180;
+  return cos(anginrad);
+}
+
+double mod(double input){
+  if (input < 0) input = -input;
+  return input;
+}
+
 void findangles1(){
   if (x>0 && z>0){
     angles1 = arctan(x/z);
@@ -154,9 +181,11 @@ void findangles2(){
   long sol1,sol2;
   sol1,sol2 = quadsolve(a,b,c);
   
-  if (sol1 <=0 && sol1>=-1) cs3 = sol1;
-  else if (sol2 <=0 && sol2>=-1) cs3 = sol2;
+  if (sol1 <=0 && sol1>=-1) cs2 = sol1;
+  else if (sol2 <=0 && sol2>=-1) cs2 = sol2;
   else nerror+=1;
+
+  angle2 = arccos(cs2);
 }
 
 void findangles3(){
@@ -165,9 +194,14 @@ void findangles3(){
 }
 
 int testcalculation(){
-  
+  calcx = (l2*(findsin(angles1)) - l3*(findsin(angles2+angles3)))*(findcos(angles1));
+  calcy = -l2*(findcos(angles2)) + l1 + l3*(findcos(angles2+angles3));
+  calcz = (l2*(findsin(angles1)) - l3*(findsin(angles2+angles3)))*(findsin(angles1));
+  if (mod(x-calcx)<0.1 && mod(y-calcy)<0.1 && mod(z-calcz)) return 0;
+  else return 1;
 }
 
 int everythingOK();{
-  
+  if (testcalculation() == 0 && nerror == 0) return 0;
+  else return 1;
 }
